@@ -22,7 +22,6 @@ std::vector<std::string> parseCmd(std::string cmd)
 
 bool evaluateCmd(std::string cmd)
 {
-  std::cerr << "the recieved cmd is :-" << cmd;
   if(cmd == "exit")
   {
     return true;
@@ -47,8 +46,7 @@ int main() {
 
     // take the user command as input 
     std::string cmd;
-    std::cin >> cmd;
-
+    std::getline(std::cin, cmd);
     // process the user's command 
     std::vector<std::string> cmdTokens = parseCmd(cmd);
     if(!evaluateCmd(cmdTokens[0]))
@@ -66,12 +64,14 @@ int main() {
       {
         if(i == cmdTokens.size()-1)
         {
-          std::cout<<cmdTokens[i];
+          std::cout<<cmdTokens[i]<<std::endl;
+          std::cout << std::unitbuf;
           
         }
         else 
         {
           std::cout<<cmdTokens[i]<<" ";
+          std::cout << std::unitbuf;
         }
       }
     }
