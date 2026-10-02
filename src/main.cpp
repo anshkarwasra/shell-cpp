@@ -30,6 +30,10 @@ bool evaluateCmd(std::string cmd)
   {
     return true;
   }
+  else if (cmd == "type")
+  {
+    return true;
+  }
   // would be used to evaluate weather it is valid or not 
   return false;
 }
@@ -74,6 +78,11 @@ int main() {
           std::cout << std::unitbuf;
         }
       }
+    }
+    else if(cmdTokens[0] == "type")
+    {
+      std::cout<<cmdTokens[1]<<" is a shell builtin";
+      std::cout<<std::unitbuf;
     }
   }
   
