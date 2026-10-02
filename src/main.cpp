@@ -3,6 +3,10 @@
 
 bool evaluateCmd(std::string cmd)
 {
+  if(cmd == "exit")
+  {
+    return true;
+  }
   // would be used to evaluate weather it is valid or not 
   return false;
 }
@@ -26,6 +30,10 @@ int main() {
     {
       std::cout<< cmd << ": command not found"<< std::endl;
       std::cout << std::unitbuf;
+    }
+    if(cmd == "exit")
+    {
+      break;
     }
   }
   
