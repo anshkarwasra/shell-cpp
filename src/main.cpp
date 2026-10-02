@@ -10,11 +10,12 @@ bool evaluateCmd(std::string cmd)
 
 int main() {
   // Flush after every std::cout / std:cerr
+  // std::cout << std::unitbuf;
+  // std::cerr << std::unitbuf;
   while(true)
   {
-    std::cout << std::unitbuf;
-    std::cerr << std::unitbuf;
     std::cout << "$ ";
+    std::cout << std::unitbuf;
 
     // take the user command as input 
     std::string cmd;
@@ -24,6 +25,7 @@ int main() {
     if(!evaluateCmd(cmd))
     {
       std::cout<< cmd << ": command not found";
+      std::cout << std::unitbuf;
     }
   }
   
