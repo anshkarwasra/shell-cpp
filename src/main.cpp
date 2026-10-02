@@ -81,7 +81,7 @@ int main() {
     }
     else if(cmdTokens[0] == "type")
     {
-      std::cout<<cmdTokens[1]<<" is a shell builtin";
+      std::cout<<cmdTokens[1]<<" is a shell builtin"<<std::endl;
       std::cout<<std::unitbuf;
     }
   }
