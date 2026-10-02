@@ -14,8 +14,8 @@ int main() {
   // std::cerr << std::unitbuf;
   while(true)
   {
-    std::cout << std::unitbuf;
     std::cout << "$ ";
+    std::cout << std::unitbuf;
 
     // take the user command as input 
     std::string cmd;
@@ -24,8 +24,8 @@ int main() {
     // process the user's command 
     if(!evaluateCmd(cmd))
     {
-      std::cout << std::unitbuf;
       std::cout<< cmd << ": command not found"<< std::endl;
+      std::cout << std::unitbuf;
     }
   }
   
