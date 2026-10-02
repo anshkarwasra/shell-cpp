@@ -25,7 +25,7 @@ int main() {
     if(!evaluateCmd(cmd))
     {
       std::cout << std::unitbuf;
-      std::cout<< cmd << ": command not found";
+      std::cout<< cmd << ": command not found"<< std::endl;
     }
   }
   
