@@ -1,9 +1,33 @@
 #include <iostream>
 #include <string>
+#include <vector>
+#include <sstream>
+
+
+
+std::vector<std::string> parseCmd(std::string cmd)
+{
+  std::stringstream cmdStream(cmd);
+  std::string token;
+  std::vector<std::string> tokens;
+
+  while (cmdStream >> token)
+  {
+    tokens.push_back(token);
+  }
+  return tokens;
+
+}
+
 
 bool evaluateCmd(std::string cmd)
 {
+  
   if(cmd == "exit")
+  {
+    return true;
+  }
+  else if (cmd == "echo")
   {
     return true;
   }
@@ -26,14 +50,30 @@ int main() {
     std::cin >> cmd;
 
     // process the user's command 
-    if(!evaluateCmd(cmd))
+    std::vector<std::string> cmdTokens = parseCmd(cmd);
+    if(!evaluateCmd(cmdTokens[0]))
     {
       std::cout<< cmd << ": command not found"<< std::endl;
       std::cout << std::unitbuf;
     }
-    if(cmd == "exit")
+    if(cmdTokens[0] == "exit")
     {
       break;
+    }
+    else if(cmdTokens[0] == "echo")
+    {
+      for(int i =1; i < cmdTokens.size();i++)
+      {
+        if(i == cmdTokens.size()-1)
+        {
+          std::cout<<cmdTokens[i];
+          
+        }
+        else 
+        {
+          std::cout<<cmdTokens[i]<<" ";
+        }
+      }
     }
   }
   
