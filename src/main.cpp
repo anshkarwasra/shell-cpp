@@ -83,7 +83,7 @@ int main() {
     {
       if(!evaluateCmd(cmdTokens[1]))
       {
-        std::cout<<"invalid_command: not found"<<std::endl<<std::unitbuf;
+        std::cout<<cmdTokens[1]<<": not found"<<std::endl<<std::unitbuf;
       }
       else
       {
