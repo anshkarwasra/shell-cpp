@@ -22,7 +22,7 @@ std::vector<std::string> parseCmd(std::string cmd)
 
 bool evaluateCmd(std::string cmd)
 {
-  
+  std::cerr << "the recieved cmd is : -" << cmd;
   if(cmd == "exit")
   {
     return true;
