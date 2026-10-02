@@ -81,8 +81,15 @@ int main() {
     }
     else if(cmdTokens[0] == "type")
     {
-      std::cout<<cmdTokens[1]<<" is a shell builtin"<<std::endl;
-      std::cout<<std::unitbuf;
+      if(!evaluateCmd(cmdTokens[1]))
+      {
+        std::cout<<"invalid_command: not found"<<std::endl<<std::unitbuf;
+      }
+      else
+      {
+        std::cout<<cmdTokens[1]<<" is a shell builtin"<<std::endl;
+        std::cout<<std::unitbuf;
+      }
     }
   }
   
