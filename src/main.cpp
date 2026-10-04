@@ -144,7 +144,10 @@ int main() {
         runProgram(full,c.tokens);
 
       }
-      std::cout << c.cmd << ": command not found" << std::endl;
+      else 
+      {
+        std::cout << c.cmd << ": command not found" << std::endl;
+      }
     }
   }
   return 0;
