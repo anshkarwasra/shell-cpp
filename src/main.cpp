@@ -4,149 +4,105 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
+#include <sys/stat.h>
 #include <unistd.h>
 
-bool isExecutable(const std::string& filepath) {
-    // access() returns 0 if the condition is met (X_OK checks for executable permission)
-    return access(filepath.c_str(), X_OK) == 0;
-}
-
-std::vector<std::string> splitStr(std::string &str, std::string delimiter) {
-  std::vector<std::string> tokens;
-  size_t start = 0;
-  size_t end = str.find(delimiter);
-
-  while (end != std::string::npos) {
-    // Add the found token (skipping empty ones if you have double spaces)
-    if (end != start) {
-      tokens.push_back(str.substr(start, end - start));
-    }
-    start = end + delimiter.length();
-    end = str.find(delimiter, start);
-  }
-  // Add the last token
-  if (start < str.length()) {
-    tokens.push_back(str.substr(start));
-  }
-  return tokens;
-}
-
-struct cmdStructure {
+struct Command {
   std::string cmd;
   std::string options;
   std::vector<std::string> arguments;
-
-  cmdStructure(std::string c, std::string o, std::vector<std::string> a)
-      : cmd(c), options(o), arguments(a) {}
 };
 
-struct pathStruct {
-  std::string origPath;
-  std::string progName;
-  pathStruct(std::string inpPath) {
-    // Use double quotes for strings
-    std::vector<std::string> pathTokens = splitStr(inpPath, "/");
-    this->progName = pathTokens[pathTokens.size() - 1];
-    this->origPath = inpPath;
-  }
-};
-bool isValidCmd(std::string cmd) {
-  std::unordered_set<std::string> validCmds = {"exit", "echo", "type"};
-  if (validCmds.find(cmd) != validCmds.end()) {
 
-    return true;
-  }
-
-  return false;
+static bool isExecutable(const std::string &filepath) {
+  struct stat st;
+  return stat(filepath.c_str(), &st) == 0 && S_ISREG(st.st_mode) &&
+         access(filepath.c_str(), X_OK) == 0;
 }
 
-cmdStructure *parseCmd(std::string cmd) {
-  std::stringstream cmdStream(cmd);
+static std::vector<std::string> parsePaths(const std::string &pathStr) {
+  std::vector<std::string> dirs;
+  std::stringstream ss(pathStr);
+  std::string dir;
+  while (std::getline(ss, dir, ':')) {
+    if (!dir.empty())
+      dirs.push_back(dir);
+  }
+  return dirs;
+}
+
+
+static std::string findInPath(const std::string &name,
+                              const std::vector<std::string> &dirs) {
+  for (const auto &dir : dirs) {
+    std::string full = dir + "/" + name;
+    if (isExecutable(full))
+      return full;
+  }
+  return "";
+}
+
+static bool isBuiltin(const std::string &cmd) {
+  static const std::unordered_set<std::string> builtins = {"exit", "echo",
+                                                           "type"};
+  return builtins.count(cmd) > 0;
+}
+
+static Command parseCmd(const std::string &line) {
+  Command c;
+  std::istringstream in(line);
   std::string token;
-  std::string command;
-  std::string options;
-  std::vector<std::string> arguments;
-
-  if (std::getline(cmdStream, command, ' ')) {
-
-    while (std::getline(cmdStream, token, ' ')) {
-      if (token.empty())
-        continue;
-
-      if (token[0] == '-') {
-        options = token;
-      } else {
-        arguments.push_back(token);
-      }
+  if (in >> c.cmd) {
+    while (in >> token) {
+      if (token[0] == '-')
+        c.options = token;
+      else
+        c.arguments.push_back(token);
     }
   }
-
-  return new cmdStructure(command, options, arguments);
+  return c;
 }
 
-std::vector<pathStruct> parsePaths(std::string pathStr) {
-  std::stringstream pathStream(pathStr);
-  std::string token;
-  std::vector<pathStruct> paths;
+int main() {
+  const char *pathEnv = std::getenv("PATH");
+  std::vector<std::string> paths = parsePaths(pathEnv ? pathEnv : "");
 
-  while (std::getline(pathStream, token, ':')) {
-    paths.push_back(pathStruct(token));
-  }
-  return paths;
-}
-
-void initCmd() { std::cout << "$ " << std::unitbuf; }
-
-int main(int argc, char *argv[]) {
-
-  std::string path_env = std::getenv("PATH");
-  std::vector<pathStruct> paths = parsePaths(path_env);
+  std::string line;
   while (true) {
-    initCmd();
+    std::cout << "$ " << std::flush;
 
-    // take the user command as input
-    std::string cmd;
-    std::getline(std::cin, cmd);
-
-    // process the user's command
-    cmdStructure *inpStruct = parseCmd(cmd);
-    bool isCmd = isValidCmd(inpStruct->cmd);
-    if (!isCmd) {
-      std::cout << inpStruct->cmd << ": command not found" << std::endl;
-      std::cout << std::unitbuf;
-    }
-    if (inpStruct->cmd == "exit") {
+    // EOF (Ctrl+D / end of piped input) ends the shell.
+    if (!std::getline(std::cin, line))
       break;
-    } else if (inpStruct->cmd == "echo") {
-      for (int i = 0; i < inpStruct->arguments.size(); i++) {
 
-        std::cout << inpStruct->arguments[i] << " " << std::unitbuf;
+    Command c = parseCmd(line);
+    if (c.cmd.empty())
+      continue;
+
+    if (c.cmd == "exit") {
+      break;
+    } else if (c.cmd == "echo") {
+      for (size_t i = 0; i < c.arguments.size(); i++) {
+        if (i > 0)
+          std::cout << " ";
+        std::cout << c.arguments[i];
       }
-      std::cout << std::endl << std::unitbuf;
-    } else if (inpStruct->cmd == "type") {
-      for (int i = 0; i < inpStruct->arguments.size(); i++) {
-        if (!isValidCmd(inpStruct->arguments[i])) {
-          if (paths.size() != 0) {
-            for (auto path : paths) {
-              std::cerr<<"the path is :- " << path.origPath << std::endl;
-              if (path.progName == inpStruct->arguments[i] && isExecutable(path.origPath)) {
-                std::cout << inpStruct->arguments[i] << " is " << path.origPath
-                          << std::unitbuf;
-              }
-            }
-          } else {
-            std::cout << inpStruct->arguments[i] << ": not found" << std::endl
-                      << std::unitbuf;
-          }
-        } else {
-          std::cout << inpStruct->arguments[i] << " is a shell builtin"
-                    << std::endl
-                    << std::unitbuf;
+      std::cout << std::endl;
+    } else if (c.cmd == "type") {
+      for (const auto &arg : c.arguments) {
+        if (isBuiltin(arg)) {
+          std::cout << arg << " is a shell builtin" << std::endl;
+          continue;
         }
+        std::string full = findInPath(arg, paths);
+        if (!full.empty())
+          std::cout << arg << " is " << full << std::endl;
+        else
+          std::cout << arg << ": not found" << std::endl;
       }
+    } else {
+      std::cout << c.cmd << ": command not found" << std::endl;
     }
-    delete inpStruct;
   }
-
   return 0;
 }
