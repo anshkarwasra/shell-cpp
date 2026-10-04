@@ -100,7 +100,6 @@ void initCmd() { std::cout << "$ " << std::unitbuf; }
 int main(int argc, char *argv[]) {
 
   std::string path_env = std::getenv("PATH");
-  std::cerr<<"the path is :- "<< path_env << std::endl<< std::unitbuf ;
   std::vector<pathStruct> paths = parsePaths(path_env);
   while (true) {
     initCmd();
