@@ -4,6 +4,12 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
+#include <unistd.h>
+
+bool isExecutable(const std::string& filepath) {
+    // access() returns 0 if the condition is met (X_OK checks for executable permission)
+    return access(filepath.c_str(), X_OK) == 0;
+}
 
 std::vector<std::string> splitStr(std::string &str, std::string delimiter) {
   std::vector<std::string> tokens;
@@ -122,7 +128,7 @@ int main(int argc, char *argv[]) {
         if (!isValidCmd(inpStruct->arguments[i])) {
           if (paths.size() != 0) {
             for (auto path : paths) {
-              if (path.progName == inpStruct->arguments[i]) {
+              if (path.progName == inpStruct->arguments[i] && isExecutable(path.origPath)) {
                 std::cout << inpStruct->arguments[i] << " is " << path.origPath
                           << std::endl
                           << std::unitbuf;
