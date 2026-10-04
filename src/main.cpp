@@ -128,7 +128,7 @@ int main(int argc, char *argv[]) {
         if (!isValidCmd(inpStruct->arguments[i])) {
           if (paths.size() != 0) {
             for (auto path : paths) {
-              std::cerr<<"the path is :- " << path.origPath << std::endl;
+              // std::cerr<<"the path is :- " << path.origPath << std::endl;
               if (path.progName == inpStruct->arguments[i] && isExecutable(path.origPath)) {
                 std::cout << inpStruct->arguments[i] << " is " << path.origPath
                           << std::unitbuf;
