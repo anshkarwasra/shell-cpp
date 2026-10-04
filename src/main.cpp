@@ -7,17 +7,51 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+
+
+
 struct Command {
   std::string cmd;
   std::string options;
   std::vector<std::string> arguments;
+  std::vector<std::string> tokens;
 };
+
+
 
 
 static bool isExecutable(const std::string &filepath) {
   struct stat st;
   return stat(filepath.c_str(), &st) == 0 && S_ISREG(st.st_mode) &&
          access(filepath.c_str(), X_OK) == 0;
+}
+
+
+#include <sys/wait.h>
+#include <unistd.h>
+
+int runProgram(const std::string &fullPath, const std::vector<std::string> &args) {
+  std::vector<char *> argv;
+  argv.push_back(const_cast<char *>(args[0].c_str()));
+  for (size_t i = 1; i < args.size(); i++)
+    argv.push_back(const_cast<char *>(args[i].c_str()));
+  argv.push_back(nullptr);
+
+  pid_t pid = fork();
+  if (pid < 0) {
+    perror("fork");
+    return -1;
+  }
+  if (pid == 0) {
+    // child: replace this process with the program
+    execv(fullPath.c_str(), argv.data());
+    perror("execv"); // only reached if execv failed
+    _exit(127);
+  }
+  // parent: wait for the child to finish
+  int status = 0;
+  waitpid(pid, &status, 0);
+  return WIFEXITED(status) ? WEXITSTATUS(status) : -1;
 }
 
 static std::vector<std::string> parsePaths(const std::string &pathStr) {
@@ -53,7 +87,9 @@ static Command parseCmd(const std::string &line) {
   std::istringstream in(line);
   std::string token;
   if (in >> c.cmd) {
+    c.tokens.push_back(c.cmd);
     while (in >> token) {
+      c.tokens.push_back(token);
       if (token[0] == '-')
         c.options = token;
       else
@@ -101,6 +137,13 @@ int main() {
           std::cout << arg << ": not found" << std::endl;
       }
     } else {
+      std::string full = findInPath(c.cmd, paths);
+      if(!full.empty())
+      {
+        // the command is a executable execute it with its args 
+        runProgram(full,c.tokens);
+
+      }
       std::cout << c.cmd << ": command not found" << std::endl;
     }
   }
