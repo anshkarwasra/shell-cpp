@@ -130,7 +130,6 @@ int main(int argc, char *argv[]) {
             for (auto path : paths) {
               if (path.progName == inpStruct->arguments[i] && isExecutable(path.origPath)) {
                 std::cout << inpStruct->arguments[i] << " is " << path.origPath
-                          << std::endl
                           << std::unitbuf;
               }
             }
